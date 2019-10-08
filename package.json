@@ -1,0 +1,47 @@
+{
+  "name": "@crossfoam/network",
+  "version": "1.0.0",
+  "description": "Network construction from the scrape process and network analysis",
+  "main": "dst/index.js",
+  "scripts": {
+    "lint": "tslint -p tslint.json --force",
+    "build": "tsc",
+    "typescript": "npm run lint && npm run build",
+    "watch": "nodemon "
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ultrapop-de/crossfoam-network.git"
+  },
+  "author": "sebastian-meier @seb_meier",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ultrapop-de/crossfoam-network/issues"
+  },
+  "homepage": "https://github.com/ultrapop-de/crossfoam-network#readme",
+  "nodemonConfig": {
+    "ignore": [
+      "node_modules/*",
+      "dst/*"
+    ],
+    "watch": [
+      "src"
+    ],
+    "exec": "npm run typescript",
+    "ext": "ts"
+  },
+  "devDependencies": {
+    "@types/core-js": "^2.5.0",
+    "nodemon": "^1.18.9",
+    "tslint": "^5.12.1",
+    "typescript": "^3.2.2",
+    "web-ext-types": "^3.1.0"
+  },
+  "dependencies": {
+    "@crossfoam/data": "^1.0.1",
+    "d3": "^5.9.7",
+    "graphology": "^0.14.1",
+    "graphology-communities-louvain": "^0.1.1",
+    "jlouvain": "^2.0.0"
+  }
+}
