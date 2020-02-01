@@ -249,6 +249,7 @@ const buildNetwork = (service: string, centralNode: string, nUuid: string,
 
       Object.keys(proxyConnections).forEach((connectionId) => {
         const connections = connectionId.split("-");
+        const connectionIdAlt = [connections[1], connections[0]].join("-");
         const connectionCount = proxyConnections[connectionId];
 
         let strength = (connectionCount / (nodes[connections[0]][3] / 3) +
@@ -261,6 +262,9 @@ const buildNetwork = (service: string, centralNode: string, nUuid: string,
         if (connectionId in edgesMap) {
           edges[edgesMap[connectionId]][4] += strength;
           edges[edgesMap[connectionId]][3] = 1;
+        } else if (connectionIdAlt in edgesMap) {
+          edges[edgesMap[connectionIdAlt]][4] += strength;
+          edges[edgesMap[connectionIdAlt]][3] = 1;
         } else {
           edges.push([...connections, 1, 2, strength]);
           edgesMap[connectionId] = edges.length - 1;
