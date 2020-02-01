@@ -116,32 +116,33 @@ const buildNetwork = (service: string, centralNode: string, nUuid: string,
           network[nodeId].friends.forEach((friendId) => {
             // make sure the friend exists in our network
             if (friendId in network  && ("friends" in network[friendId])) {
-              const connectionId = [nodesMap[nodeId], nodesMap[friendId]]
-                .sort();
+              const connectionId = [nodesMap[nodeId], nodesMap[friendId]];
+
+              /*
+                * Strenth values:
+                * 1: Connection through a proxy
+                * 2: Connection to a centralNode friend
+                * 3: Double-sided connection to centralNode friend
+                */
+              let strength = 2;
+
+              if (network[friendId].friends.indexOf(nodeId) >= 0) {
+                // They follow each other, strong connection ?!
+                strength = 3;
+                connectionId.sort();
+              }
 
               // Skip double sided connections
               if (!(connectionId.join("-") in edgesMap)) {
-
-                /*
-                 * Strenth values:
-                 * 1: Connection through a proxy
-                 * 2: Connection to a centralNode friend
-                 * 3: Double-sided connection to centralNode friend
-                 */
-                let strength = 2;
-                if (network[friendId].friends.indexOf(nodeId) >= 0) {
-                  // They follow each other, strong connection ?!
-                  strength = 3;
-                }
-
                 // In order to save memory, we only save an array
                 /*
                  * 0: source
                  * 1: target
                  * 2: strength
-                 * 3: poxyEdge (0 = no, 1 = with proxies, 2 = only proxies)
+                 * 3: proxyEdge (0 = no, 1 = with proxies, 2 = only proxies)
+                 * 4: proxyStrength
                  */
-                edges.push([...connectionId, strength, 0]);
+                edges.push([...connectionId, strength, 0, 0]);
                 edgesMap[connectionId.join("-")] = edges.length - 1;
 
                 connectionId.forEach((connection) => {
@@ -186,6 +187,8 @@ const buildNetwork = (service: string, centralNode: string, nUuid: string,
            * 15: name
            * 16: protected
            */
+
+           // TODO: Reduce proxy array, to save storage space
           proxies.push([
             proxies.length,
             proxy[0],
@@ -256,10 +259,10 @@ const buildNetwork = (service: string, centralNode: string, nUuid: string,
         }
 
         if (connectionId in edgesMap) {
-          edges[edgesMap[connectionId]][2] += strength;
+          edges[edgesMap[connectionId]][4] += strength;
           edges[edgesMap[connectionId]][3] = 1;
         } else {
-          edges.push([...connections, strength, 2]);
+          edges.push([...connections, 1, 2, strength]);
           edgesMap[connectionId] = edges.length - 1;
         }
       });
@@ -342,6 +345,7 @@ const applyCluster = (clusters, clusterKey: string, data, id: number) => {
     node[6][id].push(clusters[node[0]]);
   });
 
+  // TODO: Something is broken here...
   data.edges.forEach((edge) => {
     for (let i = 0; i < 2; i += 1) {
       const counter = (i === 0) ? 1 : 0;
