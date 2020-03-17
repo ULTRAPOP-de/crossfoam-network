@@ -366,10 +366,14 @@ const applyCluster = (clusters, clusterKey: string, data, id: number) => {
       }
 
       if (!(counterCluster in data.nodes[edge[i]][13][id])) {
-        data.nodes[edge[i]][13][id][counterCluster] = 0;
+        data.nodes[edge[i]][13][id][counterCluster] = [0, 0];
       }
 
-      data.nodes[edge[i]][13][id][counterCluster] += 1;
+      if (edge[2] >= 1) {
+        data.nodes[edge[i]][13][id][counterCluster][0] += 1;
+      } else {
+        data.nodes[edge[i]][13][id][counterCluster][1] += 1;
+      }
     }
   });
 

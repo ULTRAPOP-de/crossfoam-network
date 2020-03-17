@@ -112,29 +112,30 @@ var buildNetwork = function (service, centralNode, nUuid, timestamp, uniqueID, q
                 network[nodeId].friends.forEach(function (friendId) {
                     // make sure the friend exists in our network
                     if (friendId in network && ("friends" in network[friendId])) {
-                        var connectionId = [nodesMap[nodeId], nodesMap[friendId]]
-                            .sort();
+                        var connectionId = [nodesMap[nodeId], nodesMap[friendId]];
+                        /*
+                          * Strenth values:
+                          * 1: Connection through a proxy
+                          * 2: Connection to a centralNode friend
+                          * 3: Double-sided connection to centralNode friend
+                          */
+                        var strength = 2;
+                        if (network[friendId].friends.indexOf(nodeId) >= 0) {
+                            // They follow each other, strong connection ?!
+                            strength = 3;
+                            connectionId.sort();
+                        }
                         // Skip double sided connections
                         if (!(connectionId.join("-") in edgesMap)) {
-                            /*
-                             * Strenth values:
-                             * 1: Connection through a proxy
-                             * 2: Connection to a centralNode friend
-                             * 3: Double-sided connection to centralNode friend
-                             */
-                            var strength = 2;
-                            if (network[friendId].friends.indexOf(nodeId) >= 0) {
-                                // They follow each other, strong connection ?!
-                                strength = 3;
-                            }
                             // In order to save memory, we only save an array
                             /*
                              * 0: source
                              * 1: target
                              * 2: strength
-                             * 3: poxyEdge (0 = no, 1 = with proxies, 2 = only proxies)
+                             * 3: proxyEdge (0 = no, 1 = with proxies, 2 = only proxies)
+                             * 4: proxyStrength
                              */
-                            edges.push(__spreadArrays(connectionId, [strength, 0]));
+                            edges.push(__spreadArrays(connectionId, [strength, 0, 0]));
                             edgesMap[connectionId.join("-")] = edges.length - 1;
                             connectionId.forEach(function (connection) {
                                 nodes[connection][5] += 1;
@@ -177,6 +178,7 @@ var buildNetwork = function (service, centralNode, nUuid, timestamp, uniqueID, q
                  * 15: name
                  * 16: protected
                  */
+                // TODO: Reduce proxy array, to save storage space
                 proxies.push([
                     proxies.length,
                     proxy[0],
@@ -226,6 +228,7 @@ var buildNetwork = function (service, centralNode, nUuid, timestamp, uniqueID, q
         });
         Object.keys(proxyConnections).forEach(function (connectionId) {
             var connections = connectionId.split("-");
+            var connectionIdAlt = [connections[1], connections[0]].join("-");
             var connectionCount = proxyConnections[connectionId];
             var strength = (connectionCount / (nodes[connections[0]][3] / 3) +
                 connectionCount / (nodes[connections[1]][3] / 3)) / 2;
@@ -233,11 +236,15 @@ var buildNetwork = function (service, centralNode, nUuid, timestamp, uniqueID, q
                 strength = 1;
             }
             if (connectionId in edgesMap) {
-                edges[edgesMap[connectionId]][2] += strength;
+                edges[edgesMap[connectionId]][4] += strength;
                 edges[edgesMap[connectionId]][3] = 1;
             }
+            else if (connectionIdAlt in edgesMap) {
+                edges[edgesMap[connectionIdAlt]][4] += strength;
+                edges[edgesMap[connectionIdAlt]][3] = 1;
+            }
             else {
-                edges.push(__spreadArrays(connections, [strength, 2]));
+                edges.push(__spreadArrays(connections, [1, 2, strength]));
                 edgesMap[connectionId] = edges.length - 1;
             }
         });
@@ -310,6 +317,7 @@ var applyCluster = function (clusters, clusterKey, data, id) {
     data.nodes.forEach(function (node) {
         node[6][id].push(clusters[node[0]]);
     });
+    // TODO: Something is broken here...
     data.edges.forEach(function (edge) {
         for (var i = 0; i < 2; i += 1) {
             var counter = (i === 0) ? 1 : 0;
@@ -323,9 +331,14 @@ var applyCluster = function (clusters, clusterKey, data, id) {
                 data.cluster[id].clusters[cluster].edges[counterCluster][1] += edge[2];
             }
             if (!(counterCluster in data.nodes[edge[i]][13][id])) {
-                data.nodes[edge[i]][13][id][counterCluster] = 0;
+                data.nodes[edge[i]][13][id][counterCluster] = [0, 0];
             }
-            data.nodes[edge[i]][13][id][counterCluster] += 1;
+            if (edge[2] >= 1) {
+                data.nodes[edge[i]][13][id][counterCluster][0] += 1;
+            }
+            else {
+                data.nodes[edge[i]][13][id][counterCluster][1] += 1;
+            }
         }
     });
     return data;
