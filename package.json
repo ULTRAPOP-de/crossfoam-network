@@ -1,6 +1,6 @@
 {
   "name": "@crossfoam/network",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Network construction from the scrape process and network analysis",
   "main": "dst/index.js",
   "scripts": {
