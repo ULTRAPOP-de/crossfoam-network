@@ -212,10 +212,11 @@ const buildNetwork = (service: string, centralNode: string, nUuid: string,
           proxyKeys[tempProxyId] = proxies.length - 1;
 
           proxy[1].forEach((connection) => {
+            // TODO: Do we need the proxyEdges for anything?
             proxyEdges.push([
               proxies.length - 1,
               nodesMap[connection],
-              1,
+              // 1,
             ]);
 
             // The weight for proxy connections is determined
@@ -269,6 +270,11 @@ const buildNetwork = (service: string, centralNode: string, nUuid: string,
           edges.push([...connections, 1, 2, strength]);
           edgesMap[connectionId] = edges.length - 1;
         }
+      });
+
+      // save some memory
+      edges.forEach((edge) => {
+        edge[4] = parseFloat(edge[4].toFixed(2));
       });
 
       // And now save everything back into the storage

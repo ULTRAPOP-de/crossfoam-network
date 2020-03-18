@@ -200,10 +200,10 @@ var buildNetwork = function (service, centralNode, nUuid, timestamp, uniqueID, q
                 ]);
                 proxyKeys[tempProxyId] = proxies.length - 1;
                 proxy[1].forEach(function (connection) {
+                    // TODO: Do we need the proxyEdges for anything?
                     proxyEdges.push([
                         proxies.length - 1,
                         nodesMap[connection],
-                        1,
                     ]);
                     // The weight for proxy connections is determined
                     // by the overall size of the core nodes number of friends
@@ -247,6 +247,10 @@ var buildNetwork = function (service, centralNode, nUuid, timestamp, uniqueID, q
                 edges.push(__spreadArrays(connections, [1, 2, strength]));
                 edgesMap[connectionId] = edges.length - 1;
             }
+        });
+        // save some memory
+        edges.forEach(function (edge) {
+            edge[4] = parseFloat(edge[4].toFixed(2));
         });
         // And now save everything back into the storage
         return cfData.set("s--" + service + "--a--" + centralNode + "-" + nUuid + "--nw", {
