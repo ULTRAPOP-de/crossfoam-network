@@ -364,11 +364,16 @@ const applyCluster = (clusters, clusterKey: string, data, id: number) => {
 
       if (tempClusters[cluster].length > 1) {
         if (!(counterCluster in data.cluster[id].clusters[cluster].edges)) {
-          data.cluster[id].clusters[cluster].edges[counterCluster] = [0, 0];
+          data.cluster[id].clusters[cluster].edges[counterCluster] = [0, 0, 0, 0];
         }
 
-        data.cluster[id].clusters[cluster].edges[counterCluster][0] += 1;
-        data.cluster[id].clusters[cluster].edges[counterCluster][1] += edge[2];
+        if (edge[2] >= 1) {
+          data.cluster[id].clusters[cluster].edges[counterCluster][0] += 1;
+          data.cluster[id].clusters[cluster].edges[counterCluster][1] += edge[2];
+        } else {
+          data.cluster[id].clusters[cluster].edges[counterCluster][2] += 1;
+          data.cluster[id].clusters[cluster].edges[counterCluster][3] += edge[2];
+        }
       }
 
       if (!(counterCluster in data.nodes[edge[i]][13][id])) {
