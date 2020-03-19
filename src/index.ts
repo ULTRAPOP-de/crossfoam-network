@@ -179,13 +179,13 @@ const buildNetwork = (service: string, centralNode: string, nUuid: string,
            * 7: overview:r
            * 8: overview:x
            * 9: overview:y
-           * 10: network:r
-           * 11: network:x
-           * 12: network:y
-           * 13: friendCluster
-           * 14: image
-           * 15: name
-           * 16: protected
+           * 10: network:r // removed for memory footprint
+           * 11: network:x // removed for memory footprint
+           * 12: network:y // removed for memory footprint
+           * 13: friendCluster // removed for memory footprint
+           * 14: image // removed for memory footprint
+           * 15: name // removed for memory footprint
+           * 16: protected // removed for memory footprint
            */
 
            // TODO: Reduce proxy array, to save storage space
@@ -200,46 +200,47 @@ const buildNetwork = (service: string, centralNode: string, nUuid: string,
             0,
             0,
             0,
-            0,
-            0,
-            0,
-            [{}, {}],
-            null,
-            null,
-            null,
+            // 0,
+            // 0,
+            // 0,
+            // [{}, {}],
+            // null,
+            // null,
+            // null,
           ]);
 
-          proxyKeys[tempProxyId] = proxies.length - 1;
+          // Proxy keys are removed for now for memory footprint
+          // proxyKeys[tempProxyId] = proxies.length - 1;
 
           proxy[1].forEach((connection) => {
-            // TODO: Do we need the proxyEdges for anything?
-            proxyEdges.push([
-              proxies.length - 1,
-              nodesMap[connection],
-              // 1,
-            ]);
+            // Proxy edges are removed for now for memory footprint
+            // proxyEdges.push([
+            //   proxies.length - 1,
+            //   nodesMap[connection],
+            //   // 1,
+            // ]);
 
-            // The weight for proxy connections is determined
-            // by the overall size of the core nodes number of friends
-            // as this is so far an undirected graph, the relative
-            // weight of both friends is averaged 20% overlap === 1 weight
+            // // The weight for proxy connections is determined
+            // // by the overall size of the core nodes number of friends
+            // // as this is so far an undirected graph, the relative
+            // // weight of both friends is averaged 20% overlap === 1 weight
 
-            proxy[1].forEach((cconnection) => {
+            // proxy[1].forEach((cconnection) => {
 
-              if (connection !== cconnection) {
+            //   if (connection !== cconnection) {
 
-                const connectionId = [nodesMap[connection], nodesMap[cconnection]]
-                  .sort().join("-");
+            //     const connectionId = [nodesMap[connection], nodesMap[cconnection]]
+            //       .sort().join("-");
 
-                if (!(connectionId in proxyConnections)) {
-                  proxyConnections[connectionId] = 0;
-                }
+            //     if (!(connectionId in proxyConnections)) {
+            //       proxyConnections[connectionId] = 0;
+            //     }
 
-                proxyConnections[connectionId] += 1;
+            //     proxyConnections[connectionId] += 1;
 
-              }
+            //   }
 
-            });
+            // });
 
           });
         } else if (!(proxy[0] in leafsMap)) {
@@ -352,7 +353,7 @@ const applyCluster = (clusters, clusterKey: string, data, id: number) => {
   });
 
   data.nodes.forEach((node) => {
-    node[6][id].push(clusters[node[0]]);
+    node[6][id].push(parseInt(clusters[node[0]]));
   });
 
   // TODO: Something is broken here...
@@ -367,7 +368,7 @@ const applyCluster = (clusters, clusterKey: string, data, id: number) => {
           data.cluster[id].clusters[cluster].edges[counterCluster] = [0, 0, 0, 0];
         }
 
-        if (edge[2] >= 1) {
+        if (edge[2] >= 2) { // CHECK: before 1
           data.cluster[id].clusters[cluster].edges[counterCluster][0] += 1;
           data.cluster[id].clusters[cluster].edges[counterCluster][1] += edge[2];
         } else {
@@ -380,7 +381,7 @@ const applyCluster = (clusters, clusterKey: string, data, id: number) => {
         data.nodes[edge[i]][13][id][counterCluster] = [0, 0];
       }
 
-      if (edge[2] >= 1) {
+      if (edge[2] >= 2) { // CHECK: before 1
         data.nodes[edge[i]][13][id][counterCluster][0] += 1;
       } else {
         data.nodes[edge[i]][13][id][counterCluster][1] += 1;
@@ -471,7 +472,7 @@ const visualizeNetwork = (serviceKey: string, centralNode: string, nUuid: string
           });
         }
 
-        const positionPrecision = 3;
+        const positionPrecision = 2;
         const innerRadius = 30;
 
         const radiusScale = scaleLinear()
@@ -790,9 +791,9 @@ const cleanupNetwork = (serviceKey: string, centralNode: string, nUuid: string):
         data[1].proxies[nodeId][2] = data[0][nodeKey].friends_count;
         data[1].proxies[nodeId][3] = data[0][nodeKey].followers_count;
         data[1].proxies[nodeId][1] = data[0][nodeKey].handle;
-        data[1].proxies[nodeId][14] = data[0][nodeKey].image;
-        data[1].proxies[nodeId][15] = data[0][nodeKey].name;
-        data[1].proxies[nodeId][16] = data[0][nodeKey].protected;
+        // data[1].proxies[nodeId][14] = data[0][nodeKey].image;
+        // data[1].proxies[nodeId][15] = data[0][nodeKey].name;
+        // data[1].proxies[nodeId][16] = data[0][nodeKey].protected;
       } else {
         // console.log("where did this come from?", nodeKey);
       }
