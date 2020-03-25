@@ -669,9 +669,9 @@ var cleanupNetwork = function (serviceKey, centralNode, nUuid) {
                 data[1].proxies[nodeId][2] = data[0][nodeKey].friends_count;
                 data[1].proxies[nodeId][3] = data[0][nodeKey].followers_count;
                 data[1].proxies[nodeId][1] = data[0][nodeKey].handle;
-                data[1].proxies[nodeId][14] = data[0][nodeKey].image;
-                data[1].proxies[nodeId][15] = data[0][nodeKey].name;
-                data[1].proxies[nodeId][16] = data[0][nodeKey].protected;
+                data[1].proxies[nodeId][10] = data[0][nodeKey].image; // different index for image, name and protected on proxies (memory saving)
+                data[1].proxies[nodeId][11] = data[0][nodeKey].name;
+                data[1].proxies[nodeId][12] = data[0][nodeKey].protected;
             }
             else {
                 // console.log("where did this come from?", nodeKey);
