@@ -314,7 +314,7 @@ var applyCluster = function (clusters, clusterKey, data, id) {
         }
     });
     data.nodes.forEach(function (node) {
-        node[6][id].push(parseInt(clusters[node[0]]));
+        node[6][id].push(parseInt(clusters[node[0]], 10));
     });
     // TODO: Something is broken here...
     data.edges.forEach(function (edge) {

@@ -353,7 +353,7 @@ const applyCluster = (clusters, clusterKey: string, data, id: number) => {
   });
 
   data.nodes.forEach((node) => {
-    node[6][id].push(parseInt(clusters[node[0]]));
+    node[6][id].push(parseInt(clusters[node[0]], 10));
   });
 
   // TODO: Something is broken here...
