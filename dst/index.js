@@ -191,7 +191,7 @@ var buildNetwork = function (service, centralNode, nUuid, timestamp, uniqueID, q
                     0,
                     0,
                 ]);
-                // TODO: Proxy keys are removed for now for memory footprint
+                // TODO: Maybe remove proxy keys for memory footprint
                 proxyKeys[tempProxyId] = proxies.length - 1;
                 proxy[1].forEach(function (connection) {
                     // Proxy edges are removed for now for memory footprint
@@ -204,16 +204,16 @@ var buildNetwork = function (service, centralNode, nUuid, timestamp, uniqueID, q
                     // // by the overall size of the core nodes number of friends
                     // // as this is so far an undirected graph, the relative
                     // // weight of both friends is averaged 20% overlap === 1 weight
-                    // proxy[1].forEach((cconnection) => {
-                    //   if (connection !== cconnection) {
-                    //     const connectionId = [nodesMap[connection], nodesMap[cconnection]]
-                    //       .sort().join("-");
-                    //     if (!(connectionId in proxyConnections)) {
-                    //       proxyConnections[connectionId] = 0;
-                    //     }
-                    //     proxyConnections[connectionId] += 1;
-                    //   }
-                    // });
+                    proxy[1].forEach(function (cconnection) {
+                        if (connection !== cconnection) {
+                            var connectionId = [nodesMap[connection], nodesMap[cconnection]]
+                                .sort().join("-");
+                            if (!(connectionId in proxyConnections)) {
+                                proxyConnections[connectionId] = 0;
+                            }
+                            proxyConnections[connectionId] += 1;
+                        }
+                    });
                 });
             }
             else if (!(proxy[0] in leafsMap)) {
@@ -669,7 +669,8 @@ var cleanupNetwork = function (serviceKey, centralNode, nUuid) {
                 data[1].proxies[nodeId][2] = data[0][nodeKey].friends_count;
                 data[1].proxies[nodeId][3] = data[0][nodeKey].followers_count;
                 data[1].proxies[nodeId][1] = data[0][nodeKey].handle;
-                data[1].proxies[nodeId][10] = data[0][nodeKey].image; // different index for image, name and protected on proxies (memory saving)
+                // different index for image, name and protected on proxies (memory saving)
+                data[1].proxies[nodeId][10] = data[0][nodeKey].image;
                 data[1].proxies[nodeId][11] = data[0][nodeKey].name;
                 data[1].proxies[nodeId][12] = data[0][nodeKey].protected;
             }
