@@ -121,14 +121,14 @@ const buildNetwork = (service: string, centralNode: string, nUuid: string,
               /*
                 * Strenth values:
                 * 1: Connection through a proxy
-                * 2: Connection to a centralNode friend
-                * 3: Double-sided connection to centralNode friend
+                * 5: Connection to a centralNode friend > before 2
+                * 10: Double-sided connection to centralNode friend > before 3
                 */
-              let strength = 2;
+              let strength = 5;
 
               if (network[friendId].friends.indexOf(nodeId) >= 0) {
                 // They follow each other, strong connection ?!
-                strength = 3;
+                strength = 10;
                 connectionId.sort();
               }
 
