@@ -245,6 +245,8 @@ var buildNetwork = function (service, centralNode, nUuid, timestamp, uniqueID, q
         });
         // save some memory
         edges.forEach(function (edge) {
+            edge[0] = parseInt(edge[0], 10);
+            edge[1] = parseInt(edge[1], 10);
             edge[4] = parseFloat(edge[4].toFixed(2));
         });
         // And now save everything back into the storage

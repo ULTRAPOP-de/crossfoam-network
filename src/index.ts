@@ -275,6 +275,8 @@ const buildNetwork = (service: string, centralNode: string, nUuid: string,
 
       // save some memory
       edges.forEach((edge) => {
+        edge[0] = parseInt(edge[0], 10);
+        edge[1] = parseInt(edge[1], 10);
         edge[4] = parseFloat(edge[4].toFixed(2));
       });
 
