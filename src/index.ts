@@ -671,7 +671,8 @@ const visualizeNetwork = (serviceKey: string, centralNode: string, nUuid: string
   });
 };
 
-const updateNetworkDictionary = (serviceKey: string, centralNode: string, nUuid: string): Promise<any> => {
+const updateNetworkDictionary = (serviceKey: string, centralNode: string, nUuid: string,
+                                 timestamp?: number, uniqueID?: string, queue?: any): Promise<any> => {
   return Promise.all([
     cfData.get(`s--${serviceKey}--a--${centralNode}-${nUuid}--nw`, {}),
     cfData.get(`s--${serviceKey}--d`, {cluster: [], nodes: {}}),
@@ -684,7 +685,7 @@ const updateNetworkDictionary = (serviceKey: string, centralNode: string, nUuid:
 
     if ("cluster" in data[0]) {
       const cluster = data[0].cluster[clusterAlgoId];
-      Object.keys(cluster).forEach((clusterId) => {
+      Object.keys(cluster.clusters).forEach((clusterId) => {
         if (("modified" in cluster.clusters[clusterId]) && cluster.clusters[clusterId].modified === true) {
           const tId = `${nUuid}-${clusterAlgoId}-${clusterId}`;
           if (!(tId in clusterKeys)) {
@@ -699,7 +700,8 @@ const updateNetworkDictionary = (serviceKey: string, centralNode: string, nUuid:
         }
       });
 
-      [data[0].nodes, data[0].proxies].forEach((nodes) => {
+      // TODO: Apply Clusters to proxies [, data[0].proxies]
+      [data[0].nodes].forEach((nodes) => {
         nodes.forEach((node) => {
           const userCluster = node[6][clusterAlgoId];
           userCluster.forEach((clusterId) => {
@@ -711,13 +713,12 @@ const updateNetworkDictionary = (serviceKey: string, centralNode: string, nUuid:
             if (tId in clusterKeys && data[1].nodes[node[1]].indexOf(clusterKeys[tId]) === -1) {
               data[1].nodes[node[1]].push(clusterKeys[tId]);
             }
-
           });
         });
       });
-
     }
 
+    queue.call("updateDictionary", [], timestamp, uniqueID);
     return cfData.set(`s--${serviceKey}--d`, data[1]);
   });
 };

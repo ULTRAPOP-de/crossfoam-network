@@ -573,7 +573,7 @@ var visualizeNetwork = function (serviceKey, centralNode, nUuid, timestamp, uniq
     });
 };
 exports.visualizeNetwork = visualizeNetwork;
-var updateNetworkDictionary = function (serviceKey, centralNode, nUuid) {
+var updateNetworkDictionary = function (serviceKey, centralNode, nUuid, timestamp, uniqueID, queue) {
     return Promise.all([
         cfData.get("s--" + serviceKey + "--a--" + centralNode + "-" + nUuid + "--nw", {}),
         cfData.get("s--" + serviceKey + "--d", { cluster: [], nodes: {} }),
@@ -584,7 +584,7 @@ var updateNetworkDictionary = function (serviceKey, centralNode, nUuid) {
         });
         if ("cluster" in data[0]) {
             var cluster_1 = data[0].cluster[clusterAlgoId];
-            Object.keys(cluster_1).forEach(function (clusterId) {
+            Object.keys(cluster_1.clusters).forEach(function (clusterId) {
                 if (("modified" in cluster_1.clusters[clusterId]) && cluster_1.clusters[clusterId].modified === true) {
                     var tId = nUuid + "-" + clusterAlgoId + "-" + clusterId;
                     if (!(tId in clusterKeys)) {
@@ -597,7 +597,8 @@ var updateNetworkDictionary = function (serviceKey, centralNode, nUuid) {
                     }
                 }
             });
-            [data[0].nodes, data[0].proxies].forEach(function (nodes) {
+            // TODO: Apply Clusters to proxies [, data[0].proxies]
+            [data[0].nodes].forEach(function (nodes) {
                 nodes.forEach(function (node) {
                     var userCluster = node[6][clusterAlgoId];
                     userCluster.forEach(function (clusterId) {
@@ -612,6 +613,7 @@ var updateNetworkDictionary = function (serviceKey, centralNode, nUuid) {
                 });
             });
         }
+        queue.call("updateDictionary", [], timestamp, uniqueID);
         return cfData.set("s--" + serviceKey + "--d", data[1]);
     });
 };
