@@ -12,6 +12,8 @@ var d3_1 = require("d3");
 var Graph = require("graphology");
 var louvain = require("graphology-communities-louvain");
 var jLouvain = require("jlouvain");
+// TODO: Move this to something centralized or even config, so people can switch cluster-algos
+var clusterAlgoId = 0;
 var estimateCompletion = function (service, centralNode, nUuid, timestamp, uniqueID, queue) {
     return cfData.get("s--" + service + "--nw--" + centralNode)
         .then(function (networkData) {
@@ -581,38 +583,36 @@ var updateNetworkDictionary = function (serviceKey, centralNode, nUuid) {
             clusterKeys[cluster.id.join("-")] = ci;
         });
         if ("cluster" in data[0]) {
-            data[0].cluster.forEach(function (cluster, ci) {
-                Object.keys(cluster.clusters).forEach(function (clusterId) {
-                    if (("modified" in cluster.clusters[clusterId]) && cluster.clusters[clusterId].modified === true) {
-                        var tId = nUuid + "-" + ci + "-" + clusterId;
-                        if (!(tId in clusterKeys)) {
-                            clusterKeys[tId] = data[1].cluster.length;
-                            data[1].cluster.push({
-                                color: cluster.clusters[clusterId].color,
-                                id: [nUuid, ci, clusterId],
-                                name: cluster.clusters[clusterId].name,
-                            });
-                        }
+            var cluster_1 = data[0].cluster[clusterAlgoId];
+            Object.keys(cluster_1).forEach(function (clusterId) {
+                if (("modified" in cluster_1.clusters[clusterId]) && cluster_1.clusters[clusterId].modified === true) {
+                    var tId = nUuid + "-" + clusterAlgoId + "-" + clusterId;
+                    if (!(tId in clusterKeys)) {
+                        clusterKeys[tId] = data[1].cluster.length;
+                        data[1].cluster.push({
+                            color: cluster_1.clusters[clusterId].color,
+                            id: [nUuid, clusterAlgoId, clusterId],
+                            name: cluster_1.clusters[clusterId].name,
+                        });
                     }
-                });
+                }
             });
             [data[0].nodes, data[0].proxies].forEach(function (nodes) {
                 nodes.forEach(function (node) {
-                    node[6].forEach(function (cluster, ci) {
-                        cluster.forEach(function (clusterId) {
-                            if (!(node[1] in data[1].nodes)) {
-                                data[1].nodes[node[1]] = [];
-                            }
-                            var tId = nUuid + "-" + ci + "-" + clusterId;
-                            if (tId in clusterKeys && data[1].nodes[node[1]].indexOf(clusterKeys[tId]) === -1) {
-                                data[1].nodes[node[1]].push(clusterKeys[tId]);
-                            }
-                        });
+                    var userCluster = node[6][clusterAlgoId];
+                    userCluster.forEach(function (clusterId) {
+                        if (!(node[1] in data[1].nodes)) {
+                            data[1].nodes[node[1]] = [];
+                        }
+                        var tId = nUuid + "-" + clusterAlgoId + "-" + clusterId;
+                        if (tId in clusterKeys && data[1].nodes[node[1]].indexOf(clusterKeys[tId]) === -1) {
+                            data[1].nodes[node[1]].push(clusterKeys[tId]);
+                        }
                     });
                 });
             });
         }
-        return Promise.resolve();
+        return cfData.set("s--" + serviceKey + "--d", data[1]);
     });
 };
 exports.updateNetworkDictionary = updateNetworkDictionary;

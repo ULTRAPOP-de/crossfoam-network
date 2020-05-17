@@ -5,6 +5,9 @@ import * as Graph from "graphology";
 import * as louvain from "graphology-communities-louvain";
 import * as jLouvain from "jlouvain";
 
+// TODO: Move this to something centralized or even config, so people can switch cluster-algos
+const clusterAlgoId = 0;
+
 const estimateCompletion = (service: string, centralNode: string, nUuid: string,
                             timestamp?: number, uniqueID?: string, queue?: any): Promise<any> => {
 
@@ -680,46 +683,42 @@ const updateNetworkDictionary = (serviceKey: string, centralNode: string, nUuid:
     });
 
     if ("cluster" in data[0]) {
-      data[0].cluster.forEach((cluster, ci) => {
-        Object.keys(cluster.clusters).forEach((clusterId) => {
+      const cluster = data[0].cluster[clusterAlgoId];
+      Object.keys(cluster).forEach((clusterId) => {
+        if (("modified" in cluster.clusters[clusterId]) && cluster.clusters[clusterId].modified === true) {
+          const tId = `${nUuid}-${clusterAlgoId}-${clusterId}`;
+          if (!(tId in clusterKeys)) {
+            clusterKeys[tId] = data[1].cluster.length;
 
-          if (("modified" in cluster.clusters[clusterId]) && cluster.clusters[clusterId].modified === true) {
-            const tId = `${nUuid}-${ci}-${clusterId}`;
-            if (!(tId in clusterKeys)) {
-              clusterKeys[tId] = data[1].cluster.length;
-
-              data[1].cluster.push({
-                color: cluster.clusters[clusterId].color,
-                id: [nUuid, ci, clusterId],
-                name: cluster.clusters[clusterId].name,
-              });
-            }
+            data[1].cluster.push({
+              color: cluster.clusters[clusterId].color,
+              id: [nUuid, clusterAlgoId, clusterId],
+              name: cluster.clusters[clusterId].name,
+            });
           }
-
-        });
+        }
       });
 
       [data[0].nodes, data[0].proxies].forEach((nodes) => {
         nodes.forEach((node) => {
-          node[6].forEach((cluster, ci) => {
-            cluster.forEach((clusterId) => {
-              if (!(node[1] in data[1].nodes)) {
-                data[1].nodes[node[1]] = [];
-              }
+          const userCluster = node[6][clusterAlgoId];
+          userCluster.forEach((clusterId) => {
+            if (!(node[1] in data[1].nodes)) {
+              data[1].nodes[node[1]] = [];
+            }
 
-              const tId = `${nUuid}-${ci}-${clusterId}`;
-              if (tId in clusterKeys && data[1].nodes[node[1]].indexOf(clusterKeys[tId]) === -1) {
-                data[1].nodes[node[1]].push(clusterKeys[tId]);
-              }
+            const tId = `${nUuid}-${clusterAlgoId}-${clusterId}`;
+            if (tId in clusterKeys && data[1].nodes[node[1]].indexOf(clusterKeys[tId]) === -1) {
+              data[1].nodes[node[1]].push(clusterKeys[tId]);
+            }
 
-            });
           });
         });
       });
 
     }
 
-    return Promise.resolve();
+    return cfData.set(`s--${serviceKey}--d`, data[1]);
   });
 };
 
