@@ -445,7 +445,7 @@ const analyseNetwork = (service: string, centralNode: string, nUuid: string,
         return cfData.set(`s--${service}--a--${centralNode}-${nUuid}--nw`, data)
           .then(() => {
             if (queue) {
-              queue.call("network--visualizeNetwork", [service, centralNode, nUuid], timestamp, uniqueID);
+              queue.call("network--visualizeNetwork", [service, centralNode, nUuid], timestamp, uniqueID, queue);
             }
             return Promise.resolve();
           });
@@ -464,7 +464,7 @@ const visualizeNetwork = (serviceKey: string, centralNode: string, nUuid: string
 
     // preCalculate network positions and store
     // run an analysis of the network, etc.
-    return cfData.get(`s--${serviceKey}--a--${centralNode}-${nUuid}--nw`)
+    cfData.get(`s--${serviceKey}--a--${centralNode}-${nUuid}--nw`)
       .then((data) => {
 
         if (!Array.isArray(data.leafs)) {
@@ -653,9 +653,12 @@ const visualizeNetwork = (serviceKey: string, centralNode: string, nUuid: string
                    timestamp, uniqueID);
               }
 
-              updateNetworkDictionary(serviceKey, centralNode, nUuid)
+              updateNetworkDictionary(serviceKey, centralNode, nUuid, timestamp, uniqueID, queue)
                 .then(() => {
                   resolve();
+                })
+                .catch((err) => {
+                  reject(err);
                 });
             });
         };
@@ -667,6 +670,8 @@ const visualizeNetwork = (serviceKey: string, centralNode: string, nUuid: string
           nodes,
         });
 
+      }).catch((err) => {
+        reject(err);
       });
   });
 };

@@ -385,7 +385,7 @@ var analyseNetwork = function (service, centralNode, nUuid, timestamp, uniqueID,
             return cfData.set("s--" + service + "--a--" + centralNode + "-" + nUuid + "--nw", data)
                 .then(function () {
                 if (queue) {
-                    queue.call("network--visualizeNetwork", [service, centralNode, nUuid], timestamp, uniqueID);
+                    queue.call("network--visualizeNetwork", [service, centralNode, nUuid], timestamp, uniqueID, queue);
                 }
                 return Promise.resolve();
             });
@@ -402,7 +402,7 @@ var visualizeNetwork = function (serviceKey, centralNode, nUuid, timestamp, uniq
     return new Promise(function (resolve, reject) {
         // preCalculate network positions and store
         // run an analysis of the network, etc.
-        return cfData.get("s--" + serviceKey + "--a--" + centralNode + "-" + nUuid + "--nw")
+        cfData.get("s--" + serviceKey + "--a--" + centralNode + "-" + nUuid + "--nw")
             .then(function (data) {
             if (!Array.isArray(data.leafs)) {
                 data.leafs = d3_1.range(data.leafs).map(function (leaf) {
@@ -557,9 +557,12 @@ var visualizeNetwork = function (serviceKey, centralNode, nUuid, timestamp, uniq
                     if (data.proxies.length > 0 && queue) {
                         queue.call(serviceKey + "--getUsers", [centralNode, nUuid], timestamp, uniqueID);
                     }
-                    updateNetworkDictionary(serviceKey, centralNode, nUuid)
+                    updateNetworkDictionary(serviceKey, centralNode, nUuid, timestamp, uniqueID, queue)
                         .then(function () {
                         resolve();
+                    })
+                        .catch(function (err) {
+                        reject(err);
                     });
                 });
             };
@@ -569,6 +572,8 @@ var visualizeNetwork = function (serviceKey, centralNode, nUuid, timestamp, uniq
                 limit: 40,
                 nodes: nodes,
             });
+        }).catch(function (err) {
+            reject(err);
         });
     });
 };
