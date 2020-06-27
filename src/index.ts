@@ -11,8 +11,13 @@ const clusterAlgoId = 0;
 const estimateCompletion = (service: string, centralNode: string, nUuid: string,
                             timestamp?: number, uniqueID?: string, queue?: any): Promise<any> => {
 
-  return cfData.get(`s--${service}--nw--${centralNode}`)
+  return cfData.get(`s--${service}--nw--${centralNode}`, {})
     .then((networkData) => {
+
+      if (! (nUuid in networkData)) {
+        networkData[nUuid] = {};
+      }
+
       return cfData.get(`s--${service}--a--${centralNode}-${nUuid}--n`, {})
         .then((nodes) => {
 
@@ -20,7 +25,13 @@ const estimateCompletion = (service: string, centralNode: string, nUuid: string,
           let completeCount = 0;
           let completedNodes = 0;
           Object.keys(nodes).forEach((node) => {
-            const tCallCount = Math.ceil(nodes[node].friends_count / 5000);
+            let tCallCount = Math.ceil(nodes[node].friends_count / 5000);
+            // TODO: Move to configs
+            // Current Limit is 20.000 friends of friends 
+            if (tCallCount > 4) {
+              tCallCount = 4;
+            }
+
             callCount += tCallCount;
 
             if (nodes[node].protected) {
@@ -34,7 +45,6 @@ const estimateCompletion = (service: string, centralNode: string, nUuid: string,
             }
           });
 
-          networkData[nUuid].completed = (completedNodes === Object.keys(nodes).length) ? true : false;
           networkData[nUuid].callCount = callCount;
           networkData[nUuid].nodeCount = Object.keys(nodes).length;
           networkData[nUuid].completeCount = completeCount;
@@ -53,8 +63,13 @@ const estimateCompletion = (service: string, centralNode: string, nUuid: string,
 const buildNetwork = (service: string, centralNode: string, nUuid: string,
                       timestamp?: number, uniqueID?: string, queue?: any): Promise<any> => {
 
-  return cfData.get(`s--${service}--a--${centralNode}-${nUuid}--n`)
-    .then((network) => {
+  return cfData.get(`s--${service}--nw--${centralNode}`, {})
+    .then((networkObject) => {
+      networkObject[nUuid].state = "network";
+      return cfData.set(`s--${service}--nw--${centralNode}`, networkObject);
+    }).then(() => {
+      return cfData.get(`s--${service}--a--${centralNode}-${nUuid}--n`);
+    }).then((network) => {
       const edges = [];
       const edgesMap = {};
       const nodes = [];
@@ -742,8 +757,12 @@ const updateNetworkDictionary = (serviceKey: string, centralNode: string, nUuid:
     }
 
     return cfData.set(`s--${serviceKey}--d`, data[1]);
-  })
-  .then(() => {
+  }).then(() => {
+    return cfData.get(`s--${serviceKey}--nw--${centralNode}`, {});
+  }).then((networkObject) => {
+    networkObject[nUuid].state = "complete";
+    return cfData.set(`s--${serviceKey}--nw--${centralNode}`, networkObject);
+  }).then(() => {
     if (queue) {
       queue.call("updateDictionary", [], timestamp, uniqueID);
     }
