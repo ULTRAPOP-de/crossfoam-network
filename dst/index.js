@@ -581,8 +581,19 @@ exports.visualizeNetwork = visualizeNetwork;
 var updateNetworkDictionary = function (serviceKey, centralNode, nUuid, timestamp, uniqueID, queue) {
     return Promise.all([
         cfData.get("s--" + serviceKey + "--a--" + centralNode + "-" + nUuid + "--nw", {}),
-        cfData.get("s--" + serviceKey + "--d", { cluster: [], nodes: {} }),
+        cfData.get("s--" + serviceKey + "--d", { cluster: [], nodes: {}, altNodes: {} }),
     ]).then(function (data) {
+        // migration
+        if (!("altNodes" in data[1])) {
+            data[1].altNodes = {};
+        }
+        var reverseKeyMap = [{}, {}];
+        Object.keys(data[0].nodeKeys).forEach(function (nodeId) {
+            reverseKeyMap[0][data[0].nodeKeys[nodeId]] = nodeId;
+        });
+        Object.keys(data[0].proxyKeys).forEach(function (nodeId) {
+            reverseKeyMap[1][data[0].nodeKeys[nodeId]] = nodeId;
+        });
         var clusterKeys = {};
         data[1].cluster.forEach(function (cluster, ci) {
             clusterKeys[cluster.id.join("-")] = ci;
@@ -602,13 +613,17 @@ var updateNetworkDictionary = function (serviceKey, centralNode, nUuid, timestam
                     }
                 }
             });
-            // TODO: Apply Clusters to proxies [, data[0].proxies]
-            [data[0].nodes].forEach(function (nodes) {
-                nodes.forEach(function (node) {
+            [data[0].nodes, data[0].proxies].forEach(function (nodes, ni) {
+                nodes.forEach(function (node, nodeIndex) {
                     var userCluster = node[6][clusterAlgoId];
                     userCluster.forEach(function (clusterId) {
                         if (!(node[1] in data[1].nodes)) {
                             data[1].nodes[node[1]] = [];
+                        }
+                        if (nodeIndex in reverseKeyMap[ni]) {
+                            if (!(reverseKeyMap[ni][nodeIndex] in data[1].altNodes)) {
+                                data[1].altNodes[reverseKeyMap[ni][nodeIndex]] = node[1];
+                            }
                         }
                         var tId = nUuid + "-" + clusterAlgoId + "-" + clusterId;
                         if (tId in clusterKeys && data[1].nodes[node[1]].indexOf(clusterKeys[tId]) === -1) {
@@ -618,8 +633,13 @@ var updateNetworkDictionary = function (serviceKey, centralNode, nUuid, timestam
                 });
             });
         }
-        queue.call("updateDictionary", [], timestamp, uniqueID);
         return cfData.set("s--" + serviceKey + "--d", data[1]);
+    })
+        .then(function () {
+        if (queue) {
+            queue.call("updateDictionary", [], timestamp, uniqueID);
+        }
+        return Promise.resolve();
     });
 };
 exports.updateNetworkDictionary = updateNetworkDictionary;

@@ -680,8 +680,21 @@ const updateNetworkDictionary = (serviceKey: string, centralNode: string, nUuid:
                                  timestamp?: number, uniqueID?: string, queue?: any): Promise<any> => {
   return Promise.all([
     cfData.get(`s--${serviceKey}--a--${centralNode}-${nUuid}--nw`, {}),
-    cfData.get(`s--${serviceKey}--d`, {cluster: [], nodes: {}}),
+    cfData.get(`s--${serviceKey}--d`, {cluster: [], nodes: {}, altNodes: {}}),
   ]).then((data) => {
+
+    // migration
+    if (!("altNodes" in data[1])) {
+      data[1].altNodes = {};
+    }
+
+    const reverseKeyMap = [{}, {}];
+    Object.keys(data[0].nodeKeys).forEach((nodeId) => {
+      reverseKeyMap[0][data[0].nodeKeys[nodeId]] = nodeId;
+    });
+    Object.keys(data[0].proxyKeys).forEach((nodeId) => {
+      reverseKeyMap[1][data[0].nodeKeys[nodeId]] = nodeId;
+    });
 
     const clusterKeys = {};
     data[1].cluster.forEach((cluster, ci) => {
@@ -705,13 +718,18 @@ const updateNetworkDictionary = (serviceKey: string, centralNode: string, nUuid:
         }
       });
 
-      // TODO: Apply Clusters to proxies [, data[0].proxies]
-      [data[0].nodes].forEach((nodes) => {
-        nodes.forEach((node) => {
+      [data[0].nodes, data[0].proxies].forEach((nodes, ni) => {
+        nodes.forEach((node, nodeIndex) => {
           const userCluster = node[6][clusterAlgoId];
           userCluster.forEach((clusterId) => {
             if (!(node[1] in data[1].nodes)) {
               data[1].nodes[node[1]] = [];
+            }
+
+            if (nodeIndex in reverseKeyMap[ni]) {
+              if (!(reverseKeyMap[ni][nodeIndex] in data[1].altNodes)) {
+                data[1].altNodes[reverseKeyMap[ni][nodeIndex]] = node[1];
+              }
             }
 
             const tId = `${nUuid}-${clusterAlgoId}-${clusterId}`;
@@ -723,8 +741,13 @@ const updateNetworkDictionary = (serviceKey: string, centralNode: string, nUuid:
       });
     }
 
-    queue.call("updateDictionary", [], timestamp, uniqueID);
     return cfData.set(`s--${serviceKey}--d`, data[1]);
+  })
+  .then(() => {
+    if (queue) {
+      queue.call("updateDictionary", [], timestamp, uniqueID);
+    }
+    return Promise.resolve();
   });
 };
 
