@@ -28,7 +28,7 @@ var estimateCompletion = function (service, centralNode, nUuid, timestamp, uniqu
             Object.keys(nodes).forEach(function (node) {
                 var tCallCount = Math.ceil(nodes[node].friends_count / 5000);
                 // TODO: Move to configs
-                // Current Limit is 20.000 friends of friends 
+                // Current Limit is 20.000 friends of friends
                 if (tCallCount > 4) {
                     tCallCount = 4;
                 }
