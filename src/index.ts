@@ -300,22 +300,21 @@ const buildNetwork = (service: string, centralNode: string, nUuid: string,
 
       // And now save everything back into the storage
       return cfData.set(`s--${service}--a--${centralNode}-${nUuid}--nw`, {
-        edges,
-        leafs,
-        nodeKeys: nodesMap,
-        nodes,
-        proxies,
-        proxyEdges,
-        proxyKeys,
-      })
-      .then(() => {
-        if (queue) {
-          queue.call("network--analyseNetwork", [service, centralNode, nUuid], timestamp, uniqueID);
-        }
-        return Promise.resolve();
-      });
+          edges,
+          leafs,
+          nodeKeys: nodesMap,
+          nodes,
+          proxies,
+          proxyEdges,
+          proxyKeys,
+        })
+        .then(() => {
+          if (queue) {
+            queue.call("network--analyseNetwork", [service, centralNode, nUuid], timestamp, uniqueID);
+          }
+          return Promise.resolve();
+        });
     });
-  return Promise.resolve();
 };
 
 const cycleIndex = (max, index) => {

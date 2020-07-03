@@ -280,7 +280,6 @@ var buildNetwork = function (service, centralNode, nUuid, timestamp, uniqueID, q
             return Promise.resolve();
         });
     });
-    return Promise.resolve();
 };
 exports.buildNetwork = buildNetwork;
 var cycleIndex = function (max, index) {
