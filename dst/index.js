@@ -10,7 +10,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var cfData = require("@crossfoam/data");
 var d3_1 = require("d3");
 var Graph = require("graphology");
-var graphology_communities_louvain_1 = require("graphology-communities-louvain");
+var louvain = require("graphology-communities-louvain");
 var jLouvain = require("jlouvain");
 // TODO: Move this to something centralized or even config, so people can switch cluster-algos
 var clusterAlgoId = 0;
@@ -378,7 +378,7 @@ var analyseNetwork = function (service, centralNode, nUuid, timestamp, uniqueID,
             data.edges.forEach(function (edge) {
                 graph_1.addEdge(edge[0], edge[1], { weight: edge[2] });
             });
-            var communities = graphology_communities_louvain_1.default(graph_1, {
+            var communities = louvain(graph_1, {
                 attributes: {
                     community: "community",
                     weight: "weight",

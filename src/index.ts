@@ -2,7 +2,7 @@ import * as cfData from "@crossfoam/data";
 import { forceCenter, forceCollide, forceLink, forceManyBody,
          forceSimulation, max as d3Max, range, scaleLinear } from "d3";
 import * as Graph from "graphology";
-import louvain from "graphology-communities-louvain";
+import * as louvain from "graphology-communities-louvain";
 import * as jLouvain from "jlouvain";
 
 // TODO: Move this to something centralized or even config, so people can switch cluster-algos
