@@ -2,7 +2,7 @@ import * as cfData from "@crossfoam/data";
 import { forceCenter, forceCollide, forceLink, forceManyBody,
          forceSimulation, max as d3Max, range, scaleLinear } from "d3";
 import * as Graph from "graphology";
-import * as louvain from "graphology-communities-louvain";
+import louvain from "graphology-communities-louvain";
 import * as jLouvain from "jlouvain";
 
 // TODO: Move this to something centralized or even config, so people can switch cluster-algos
@@ -440,6 +440,11 @@ const analyseNetwork = (service: string, centralNode: string, nUuid: string,
             community: "community",
             weight: "weight",
           },
+          fastLocalMoves: true,
+          randomWalk: true,
+          resolution: 1,
+          rng: Math.random,
+          weighted: false,
         });
 
         data = applyCluster(communities, "graphology", data, 0);
@@ -468,7 +473,6 @@ const analyseNetwork = (service: string, centralNode: string, nUuid: string,
        return Promise.resolve();
      }
    });
-  return Promise.resolve();
 };
 
 const visualizeNetwork = (serviceKey: string, centralNode: string, nUuid: string,
