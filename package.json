@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "@crossfoam/data": "^1.0.3",
-    "d3": "^5.9.7",
+    "d3": "^7.6.1",
     "graphology": "^0.14.1",
     "graphology-communities-louvain": "git://github.com/ultrapop-de/graphology-communities-louvain.git",
     "jlouvain": "^2.0.0"
